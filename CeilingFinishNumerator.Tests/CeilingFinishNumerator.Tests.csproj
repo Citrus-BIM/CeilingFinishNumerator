@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <Compile Include="..\CeilingFinishNumerator\PhaseSelectionOptions.cs" Link="PhaseSelectionOptions.cs" />
+    <Compile Include="..\CeilingFinishNumerator\RoomPhaseFallbackSelector.cs" Link="RoomPhaseFallbackSelector.cs" />
   </ItemGroup>
 
   <ItemGroup>

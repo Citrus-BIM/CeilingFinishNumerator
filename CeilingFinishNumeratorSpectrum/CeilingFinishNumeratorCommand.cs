@@ -1365,21 +1365,94 @@ namespace CeilingFinishNumerator
 
         private List<Room> GetRooms(Document doc, PhaseSelectionOptions phaseSelectionOptions)
         {
-            return new FilteredElementCollector(doc)
-                .OfClass(typeof(SpatialElement))
-                .WhereElementIsNotElementType()
-                .OfType<Room>()
-                .Where(r => r.Area > 0)
-                .Where(r => RoomMatchesPhase(r, phaseSelectionOptions))
-                .OrderBy(r => (doc.GetElement(r.LevelId) as Level)?.Elevation ?? 0)
+            var placedRooms = GetPlacedRooms(doc);
+            var roomPhaseSelectionOptions = GetRoomPhaseSelectionOptions(doc, phaseSelectionOptions, placedRooms);
+            return placedRooms
+                .Where(r => RoomMatchesPhase(r, roomPhaseSelectionOptions))
                 .ToList();
         }
 
         private List<Room> GetRoomsOnLevel(Document doc, Level level, PhaseSelectionOptions phaseSelectionOptions)
         {
-            return GetRooms(doc, phaseSelectionOptions)
+            var placedRooms = GetPlacedRooms(doc)
                 .Where(r => level != null && r.LevelId == level.Id)
                 .ToList();
+            var roomPhaseSelectionOptions = GetRoomPhaseSelectionOptions(doc, phaseSelectionOptions, placedRooms);
+            return placedRooms
+                .Where(r => RoomMatchesPhase(r, roomPhaseSelectionOptions))
+                .ToList();
+        }
+
+        private List<Room> GetPlacedRooms(Document doc)
+        {
+            return new FilteredElementCollector(doc)
+                .OfClass(typeof(SpatialElement))
+                .WhereElementIsNotElementType()
+                .OfType<Room>()
+                .Where(r => r.Area > 0)
+                .OrderBy(r => (doc.GetElement(r.LevelId) as Level)?.Elevation ?? 0)
+                .ToList();
+        }
+
+        private PhaseSelectionOptions GetRoomPhaseSelectionOptions(
+            Document doc,
+            PhaseSelectionOptions phaseSelectionOptions,
+            List<Room> candidateRooms)
+        {
+            if (!phaseSelectionOptions.ConsiderPhase || !phaseSelectionOptions.SelectedPhaseIdValue.HasValue)
+            {
+                return phaseSelectionOptions;
+            }
+
+            long? roomPhaseIdValue = new RoomPhaseFallbackSelector()
+                .SelectPhaseWithRooms(
+                    GetPhaseIdValues(doc),
+                    phaseSelectionOptions.SelectedPhaseIdValue,
+                    GetRoomCountsByPhase(candidateRooms));
+
+            return new PhaseSelectionOptions(
+                phaseSelectionOptions.ConsiderPhase,
+                roomPhaseIdValue,
+                phaseSelectionOptions.SelectedPhaseFilterIdValue);
+        }
+
+        private IReadOnlyList<long> GetPhaseIdValues(Document doc)
+        {
+            var phaseIds = new List<long>();
+            var phases = doc.Phases;
+            for (int i = 0; i < phases.Size; i++)
+            {
+                var phase = phases.get_Item(i);
+                long? phaseIdValue = ElementIdCompat.GetValue(phase.Id);
+                if (phaseIdValue.HasValue)
+                {
+                    phaseIds.Add(phaseIdValue.Value);
+                }
+            }
+
+            return phaseIds;
+        }
+
+        private IReadOnlyDictionary<long, int> GetRoomCountsByPhase(List<Room> rooms)
+        {
+            var roomCountsByPhase = new Dictionary<long, int>();
+            foreach (Room room in rooms)
+            {
+                long? phaseIdValue = GetRoomPhaseIdValue(room);
+                if (!phaseIdValue.HasValue)
+                {
+                    continue;
+                }
+
+                if (!roomCountsByPhase.ContainsKey(phaseIdValue.Value))
+                {
+                    roomCountsByPhase[phaseIdValue.Value] = 0;
+                }
+
+                roomCountsByPhase[phaseIdValue.Value]++;
+            }
+
+            return roomCountsByPhase;
         }
 
         private bool RoomMatchesPhase(Room room, PhaseSelectionOptions phaseSelectionOptions)
