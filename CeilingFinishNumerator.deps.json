@@ -1,0 +1,34 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "CeilingFinishNumerator/1.0.0": {
+        "dependencies": {
+          "Revit_All_Main_Versions_API_x64": "2025.0.0"
+        },
+        "runtime": {
+          "CeilingFinishNumerator.dll": {}
+        }
+      },
+      "Revit_All_Main_Versions_API_x64/2025.0.0": {}
+    }
+  },
+  "libraries": {
+    "CeilingFinishNumerator/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "Revit_All_Main_Versions_API_x64/2025.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-WyY9eYbUmMrv2SV7tAc72no2fT/ZKi57VAvxkScKesB5TSWVCiujYJZqf0/Eoc5QZysNS1dfw9BJjhTMHwo0mg==",
+      "path": "revit_all_main_versions_api_x64/2025.0.0",
+      "hashPath": "revit_all_main_versions_api_x64.2025.0.0.nupkg.sha512"
+    }
+  }
+}
